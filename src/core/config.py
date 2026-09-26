@@ -166,11 +166,26 @@ def get_red_model_advance() -> str:
 
 
 def get_openai_api_key() -> str:
-    return os.environ.get("OPENAI_API_KEY", "").strip()
+    key = os.environ.get("OPENAI_API_KEY", "").strip()
+    if key and key != "sk-...":
+        return key
+    return get_openrouter_api_key()
 
 
 def red_openai_client_kwargs() -> dict:
-    return {"api_key": get_openai_api_key() or None}
+    key = get_openai_api_key()
+    kwargs = {"api_key": key or None}
+    base_url = (
+        os.environ.get("OPENAI_BASE_URL", "").strip()
+        or (
+            os.environ.get("OPENROUTER_BASE_URL", OPENROUTER_BASE_URL).strip()
+            if (key and key.startswith("sk-or-v1-"))
+            else None
+        )
+    )
+    if base_url:
+        kwargs["base_url"] = base_url
+    return kwargs
 
 
 def red_provider_label(tier: str = "advance") -> str:

@@ -51,25 +51,38 @@ class OpenAIRunner:
 
         return OpenAI(**(self.client_kwargs or {}))
 
-    async def chat(self, agent: OpenAIAgent, user_message: str) -> str:
+    async def chat(self, agent: OpenAIAgent, user_message: str, user_id: str | None = None) -> str:
         for hook in self.input_hooks:
             blocked = hook(user_message)
             if blocked:
                 return blocked
 
-        block_msg = await self._run_input_plugins(user_message)
+        block_msg = await self._run_input_plugins(user_message, user_id=user_id)
         if block_msg is not None:
             return block_msg
 
         client = self._client()
-        completion = client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": agent.instruction},
-                {"role": "user", "content": user_message},
-            ],
-            temperature=self.temperature,
-        )
+        try:
+            completion = client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": agent.instruction},
+                    {"role": "user", "content": user_message},
+                ],
+                temperature=self.temperature,
+            )
+        except Exception as e:
+            if "liquid/lfm-2.5-2.6b" in str(self.model) and ("404" in str(e) or "No endpoints" in str(e)):
+                completion = client.chat.completions.create(
+                    model="liquid/lfm-2.5-2.6b:free",
+                    messages=[
+                        {"role": "system", "content": agent.instruction},
+                        {"role": "user", "content": user_message},
+                    ],
+                    temperature=self.temperature,
+                )
+            else:
+                raise
         text = (completion.choices[0].message.content or "").strip()
 
         for hook in self.output_hooks:
@@ -78,7 +91,7 @@ class OpenAIRunner:
         text = await self._run_output_plugins(text)
         return text
 
-    async def _run_input_plugins(self, user_message: str) -> str | None:
+    async def _run_input_plugins(self, user_message: str, user_id: str | None = None) -> str | None:
         if not self.plugins:
             return None
         try:
@@ -90,7 +103,7 @@ class OpenAIRunner:
             role="user",
             parts=[types.Part.from_text(text=user_message)],
         )
-        ctx = _MockInvocationContext()
+        ctx = _MockInvocationContext(user_id=user_id or "student")
         for plugin in self.plugins:
             cb = getattr(plugin, "on_user_message_callback", None)
             if cb is None:
