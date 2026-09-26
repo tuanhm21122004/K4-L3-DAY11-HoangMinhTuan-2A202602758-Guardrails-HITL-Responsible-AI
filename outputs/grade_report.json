@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-26T10:09:45.319690+00:00",
+  "generated_at": "2026-09-26T10:42:00.928229+00:00",
   "submission_dir": "C:\\Users\\ironh\\Downloads\\VinUni\\Lab\\K4-L3-DAY11-HoangMinhTuan-2A202602758-Guardrails-HITL-Responsible-AI",
   "technical_failure": false,
   "packaging": {
@@ -41,13 +41,13 @@
       "llm_model": "gpt-4o-mini",
       "unsafe_leaks": 5,
       "unsafe_total": 5,
-      "guards_leaks": 4,
+      "guards_leaks": 5,
       "guards_total": 5
     }
   },
   "public_tests": {
     "returncode": 0,
-    "stdout": "..........                                                               [100%]\n10 passed in 1.16s\n",
+    "stdout": "..........                                                               [100%]\n10 passed in 1.33s\n",
     "stderr": "",
     "technical_failure": false
   },
