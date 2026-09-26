@@ -70,6 +70,7 @@ class OpenAIRunner:
                     {"role": "user", "content": user_message},
                 ],
                 temperature=self.temperature,
+                max_tokens=1000,
             )
         except Exception as e:
             if "liquid/lfm-2.5-2.6b" in str(self.model) and ("404" in str(e) or "No endpoints" in str(e)):
@@ -80,6 +81,7 @@ class OpenAIRunner:
                         {"role": "user", "content": user_message},
                     ],
                     temperature=self.temperature,
+                    max_tokens=1000,
                 )
             else:
                 raise
